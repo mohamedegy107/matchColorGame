@@ -142,11 +142,12 @@ function renderLevelMap() {
 }
 
 function renderBoard(options = {}) {
-  const { crushed = new Set(), swapped = [] } = options;
+  const { crushed = new Set(), swapped = [], bombIndex = null, sparkle = false } = options;
   const level = getActiveLevel();
 
   boardEl.innerHTML = '';
   boardEl.style.setProperty('--board-size', String(level.boardSize));
+  boardEl.classList.toggle('sparkle', sparkle);
 
   for (let row = 0; row < level.boardSize; row += 1) {
     for (let col = 0; col < level.boardSize; col += 1) {
@@ -160,6 +161,7 @@ function renderBoard(options = {}) {
       if (selected === idx) candy.classList.add('selected');
       if (swapped.includes(idx)) candy.classList.add('swap-in');
       if (crushed.has(idx)) candy.classList.add('crush');
+      if (bombIndex === idx) candy.classList.add('bomb-blast');
 
       candy.addEventListener('click', () => onCellClick(idx));
       boardEl.appendChild(candy);
@@ -202,8 +204,11 @@ async function resolveMatches(chain = 1) {
     const points = matches.size * 10 * chain * level.id;
     totalPoints += points;
 
-    renderBoard({ crushed: matches });
-    await sleep(getAnimationDelay(220));
+    const isBombMatch = matches.size >= 4;
+    const bombIndex = isBombMatch ? [...matches][Math.floor(Math.random() * matches.size)] : null;
+
+    renderBoard({ crushed: matches, bombIndex, sparkle: isBombMatch });
+    await sleep(getAnimationDelay(isBombMatch ? 320 : 220));
 
     for (const match of matches) {
       const [row, col] = indexToCoord(match, level.boardSize);

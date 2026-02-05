@@ -202,6 +202,10 @@ p {
   user-select: none;
 }
 
+.board.sparkle {
+  animation: boardSparkle 0.35s ease;
+}
+
 .candy {
   border: none;
   cursor: pointer;
@@ -242,6 +246,20 @@ p {
 
 .candy.crush {
   animation: crushPop 0.22s ease forwards;
+}
+
+.candy.bomb-blast {
+  animation: bombBlast 0.36s ease-out forwards;
+  z-index: 2;
+}
+
+.candy.bomb-blast::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  border-radius: 50%;
+  border: 3px solid rgb(255 255 255 / 80%);
+  animation: shockwave 0.36s ease-out forwards;
 }
 
 .candy-round {
@@ -344,6 +362,45 @@ p {
   }
   75% {
     transform: translateX(3px);
+  }
+}
+
+@keyframes bombBlast {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  45% {
+    transform: scale(1.4);
+    filter: brightness(1.9);
+  }
+  100% {
+    transform: scale(0.25);
+    opacity: 0;
+    filter: brightness(2.1);
+  }
+}
+
+@keyframes shockwave {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes boardSparkle {
+  0% {
+    filter: drop-shadow(0 0 0 rgb(255 246 163 / 0%));
+  }
+  60% {
+    filter: drop-shadow(0 0 16px rgb(255 246 163 / 65%));
+  }
+  100% {
+    filter: drop-shadow(0 0 0 rgb(255 246 163 / 0%));
   }
 }
 
