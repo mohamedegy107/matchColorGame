@@ -48,6 +48,7 @@ const gameScreen = document.getElementById('gameScreen');
 const levelGrid = document.getElementById('levelGrid');
 
 const playBtn = document.getElementById('playBtn');
+const openLevelsBtn = document.getElementById('openLevelsBtn');
 const openSettingsBtn = document.getElementById('openSettingsBtn');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const mapBackBtn = document.getElementById('mapBackBtn');
@@ -304,6 +305,11 @@ function startLevel() {
 
 resetBtn.addEventListener('click', startLevel);
 playBtn.addEventListener('click', () => {
+  activeLevelIndex = Math.max(0, Math.min(unlockedLevel - 1, LEVELS.length - 1));
+  startLevel();
+  showScreen(gameScreen);
+});
+openLevelsBtn.addEventListener('click', () => {
   renderLevelMap();
   showScreen(mapScreen);
 });
