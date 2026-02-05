@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Match Color Crush</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="panel">
+        <div>
+          <h1>Match Color Crush</h1>
+          <p>Swap adjacent candies to make matches of 3+ like Candy Crush.</p>
+        </div>
+        <button id="resetBtn" class="btn">New Game</button>
+      </header>
+
+      <section class="hud panel">
+        <div class="hud-item">
+          <span class="label">Score</span>
+          <strong id="score">0</strong>
+        </div>
+        <div class="hud-item">
+          <span class="label">Moves Left</span>
+          <strong id="moves">30</strong>
+        </div>
+        <div class="hud-item">
+          <span class="label">Best</span>
+          <strong id="best">0</strong>
+        </div>
+      </section>
+
+      <section class="board-wrap panel">
+        <div id="board" class="board" aria-label="match color board"></div>
+        <div id="message" class="message" aria-live="polite"></div>
+      </section>
+
+      <footer class="panel rules">
+        <h2>How to play</h2>
+        <ul>
+          <li>Click one candy, then a neighboring candy to swap.</li>
+          <li>Match 3 or more of the same color in a line.</li>
+          <li>Chain reactions give bonus points.</li>
+        </ul>
+      </footer>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
