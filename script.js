@@ -7,6 +7,13 @@ const CANDY_TYPES = [
   { id: 5, name: 'orange', classes: ['candy-orange', 'candy-pill'] }
 ];
 
+const SPECIAL = {
+  NONE: 0,
+  BOMB: 1,
+  LASER_H: 2,
+  LASER_V: 3
+};
+
 const LEVELS = Array.from({ length: 12 }, (_, index) => {
   const level = index + 1;
   return {
@@ -23,14 +30,7 @@ const ANIMATION_SPEED = {
   slow: 1.3
 };
 
-const {
-  areAdjacent,
-  createBoardWithoutMatches,
-  findMatches,
-  indexToCoord,
-  collapseBoard,
-  swapCells
-} = window.GameLogic;
+const { areAdjacent, createBoardWithoutMatches, indexToCoord, collapseBoard, swapCells } = window.GameLogic;
 
 const scoreEl = document.getElementById('score');
 const movesEl = document.getElementById('moves');
@@ -74,6 +74,18 @@ bestEl.textContent = String(bestScore);
 animationSpeedSelect.value = settings.animationSpeed;
 hintsToggle.checked = settings.showHints;
 
+function encodeCandy(baseType, special = SPECIAL.NONE) {
+  return special * 10 + baseType;
+}
+
+function baseType(value) {
+  return value % 10;
+}
+
+function specialType(value) {
+  return Math.floor(value / 10);
+}
+
 function getActiveLevel() {
   return LEVELS[activeLevelIndex];
 }
@@ -92,9 +104,7 @@ function getCandyType(id) {
 
 function showScreen(screen) {
   const screens = [mainScreen, settingsScreen, mapScreen, gameScreen];
-  for (const item of screens) {
-    item.classList.toggle('hidden', item !== screen);
-  }
+  for (const item of screens) item.classList.toggle('hidden', item !== screen);
 }
 
 function persistSettings() {
@@ -122,9 +132,7 @@ function renderLevelMap() {
       levelButton.classList.add('locked');
     }
 
-    if (level.id - 1 === activeLevelIndex) {
-      levelButton.classList.add('current');
-    }
+    if (level.id - 1 === activeLevelIndex) levelButton.classList.add('current');
 
     levelButton.setAttribute(
       'aria-label',
@@ -142,7 +150,13 @@ function renderLevelMap() {
 }
 
 function renderBoard(options = {}) {
-  const { crushed = new Set(), swapped = [], bombIndex = null, sparkle = false } = options;
+  const {
+    crushed = new Set(),
+    swapped = [],
+    sparkle = false,
+    bombFx = new Set(),
+    laserFx = new Set()
+  } = options;
   const level = getActiveLevel();
 
   boardEl.innerHTML = '';
@@ -152,21 +166,130 @@ function renderBoard(options = {}) {
   for (let row = 0; row < level.boardSize; row += 1) {
     for (let col = 0; col < level.boardSize; col += 1) {
       const idx = row * level.boardSize + col;
-      const candyType = getCandyType(board[row][col]);
+      const typeValue = board[row][col];
+      const candyType = getCandyType(baseType(typeValue));
+      const special = specialType(typeValue);
       const candy = document.createElement('button');
       candy.className = `candy ${candyType.classes.join(' ')}`;
       candy.dataset.index = String(idx);
       candy.setAttribute('aria-label', `${candyType.name} candy row ${row + 1} column ${col + 1}`);
 
+      if (special === SPECIAL.BOMB) candy.classList.add('special-bomb');
+      if (special === SPECIAL.LASER_H || special === SPECIAL.LASER_V) candy.classList.add('special-laser');
+      if (special === SPECIAL.LASER_H) candy.classList.add('special-laser-h');
+      if (special === SPECIAL.LASER_V) candy.classList.add('special-laser-v');
+
       if (selected === idx) candy.classList.add('selected');
       if (swapped.includes(idx)) candy.classList.add('swap-in');
       if (crushed.has(idx)) candy.classList.add('crush');
-      if (bombIndex === idx) candy.classList.add('bomb-blast');
+      if (bombFx.has(idx)) candy.classList.add('bomb-blast');
+      if (laserFx.has(idx)) candy.classList.add('laser-blast');
 
       candy.addEventListener('click', () => onCellClick(idx));
       boardEl.appendChild(candy);
     }
   }
+}
+
+function detectMatchGroups() {
+  const level = getActiveLevel();
+  const groups = [];
+
+  for (let row = 0; row < level.boardSize; row += 1) {
+    let runStart = 0;
+    for (let col = 1; col <= level.boardSize; col += 1) {
+      const current = col < level.boardSize ? baseType(board[row][col]) : null;
+      const previous = baseType(board[row][col - 1]);
+      if (current !== previous) {
+        const runLength = col - runStart;
+        if (runLength >= 3) {
+          const cells = [];
+          for (let c = runStart; c < col; c += 1) cells.push(row * level.boardSize + c);
+          groups.push({ cells, orientation: 'h' });
+        }
+        runStart = col;
+      }
+    }
+  }
+
+  for (let col = 0; col < level.boardSize; col += 1) {
+    let runStart = 0;
+    for (let row = 1; row <= level.boardSize; row += 1) {
+      const current = row < level.boardSize ? baseType(board[row][col]) : null;
+      const previous = baseType(board[row - 1][col]);
+      if (current !== previous) {
+        const runLength = row - runStart;
+        if (runLength >= 3) {
+          const cells = [];
+          for (let r = runStart; r < row; r += 1) cells.push(r * level.boardSize + col);
+          groups.push({ cells, orientation: 'v' });
+        }
+        runStart = row;
+      }
+    }
+  }
+
+  return groups;
+}
+
+function collectSpecialEffects(toClear) {
+  const level = getActiveLevel();
+  const queue = [];
+  const visited = new Set();
+
+  for (const idx of toClear) {
+    const [row, col] = indexToCoord(idx, level.boardSize);
+    const special = specialType(board[row][col]);
+    if (special !== SPECIAL.NONE) queue.push(idx);
+  }
+
+  const bombFx = new Set();
+  const laserFx = new Set();
+
+  while (queue.length > 0) {
+    const idx = queue.shift();
+    if (visited.has(idx)) continue;
+    visited.add(idx);
+
+    const [row, col] = indexToCoord(idx, level.boardSize);
+    const special = specialType(board[row][col]);
+
+    if (special === SPECIAL.BOMB) {
+      bombFx.add(idx);
+      for (let dr = -1; dr <= 1; dr += 1) {
+        for (let dc = -1; dc <= 1; dc += 1) {
+          const r = row + dr;
+          const c = col + dc;
+          if (r < 0 || r >= level.boardSize || c < 0 || c >= level.boardSize) continue;
+          const next = r * level.boardSize + c;
+          if (!toClear.has(next)) toClear.add(next);
+          const nextSpecial = specialType(board[r][c]);
+          if (nextSpecial !== SPECIAL.NONE) queue.push(next);
+        }
+      }
+    }
+
+    if (special === SPECIAL.LASER_H || special === SPECIAL.LASER_V) {
+      laserFx.add(idx);
+      if (special === SPECIAL.LASER_H) {
+        for (let c = 0; c < level.boardSize; c += 1) {
+          const next = row * level.boardSize + c;
+          if (!toClear.has(next)) toClear.add(next);
+          const nextSpecial = specialType(board[row][c]);
+          if (nextSpecial !== SPECIAL.NONE) queue.push(next);
+        }
+      } else {
+        for (let r = 0; r < level.boardSize; r += 1) {
+          const next = r * level.boardSize + col;
+          if (!toClear.has(next)) toClear.add(next);
+          const nextSpecial = specialType(board[r][col]);
+          if (nextSpecial !== SPECIAL.NONE) queue.push(next);
+        }
+      }
+    }
+  }
+
+  return { bombFx, laserFx };
 }
 
 function animateInvalidSwap(indices) {
@@ -192,26 +315,53 @@ function updateHud() {
 
 function initializeBoard() {
   const level = getActiveLevel();
-  board = createBoardWithoutMatches(level.boardSize, CANDY_TYPES.length);
+  const raw = createBoardWithoutMatches(level.boardSize, CANDY_TYPES.length);
+  board = raw.map((row) => row.map((v) => encodeCandy(v, SPECIAL.NONE)));
 }
 
 async function resolveMatches(chain = 1) {
   const level = getActiveLevel();
-  let matches = findMatches(board, level.boardSize);
+  let groups = detectMatchGroups();
   let totalPoints = 0;
 
-  while (matches.size > 0) {
-    const points = matches.size * 10 * chain * level.id;
+  while (groups.length > 0) {
+    const baseMatched = new Set(groups.flatMap((group) => group.cells));
+    const toClear = new Set(baseMatched);
+    const specialsToCreate = [];
+
+    for (const group of groups) {
+      if (group.cells.length >= 5) {
+        specialsToCreate.push({ idx: group.cells[Math.floor(group.cells.length / 2)], special: SPECIAL.BOMB });
+      } else if (group.cells.length === 4) {
+        specialsToCreate.push({
+          idx: group.cells[1],
+          special: group.orientation === 'h' ? SPECIAL.LASER_H : SPECIAL.LASER_V
+        });
+      }
+    }
+
+    const { bombFx, laserFx } = collectSpecialEffects(toClear);
+
+    for (const item of specialsToCreate) {
+      if (toClear.has(item.idx)) toClear.delete(item.idx);
+      const [r, c] = indexToCoord(item.idx, level.boardSize);
+      board[r][c] = encodeCandy(baseType(board[r][c]), item.special);
+    }
+
+    const clearCount = toClear.size;
+    const points = clearCount * 10 * chain * level.id;
     totalPoints += points;
 
-    const isBombMatch = matches.size >= 4;
-    const bombIndex = isBombMatch ? [...matches][Math.floor(Math.random() * matches.size)] : null;
+    renderBoard({
+      crushed: toClear,
+      sparkle: bombFx.size > 0 || laserFx.size > 0,
+      bombFx,
+      laserFx
+    });
+    await sleep(getAnimationDelay((bombFx.size > 0 || laserFx.size > 0) ? 360 : 220));
 
-    renderBoard({ crushed: matches, bombIndex, sparkle: isBombMatch });
-    await sleep(getAnimationDelay(isBombMatch ? 320 : 220));
-
-    for (const match of matches) {
-      const [row, col] = indexToCoord(match, level.boardSize);
+    for (const idx of toClear) {
+      const [row, col] = indexToCoord(idx, level.boardSize);
       board[row][col] = null;
     }
 
@@ -220,7 +370,7 @@ async function resolveMatches(chain = 1) {
     renderBoard();
     await sleep(getAnimationDelay(130));
 
-    matches = findMatches(board, level.boardSize);
+    groups = detectMatchGroups();
   }
 
   return totalPoints;
@@ -259,10 +409,10 @@ async function onCellClick(index) {
   renderBoard({ swapped: [first, second] });
   await sleep(getAnimationDelay(150));
 
-  if (findMatches(board, level.boardSize).size === 0) {
+  if (detectMatchGroups().length === 0) {
+    swapCells(board, first, second, level.boardSize);
     animateInvalidSwap([first, second]);
     await sleep(getAnimationDelay(230));
-    swapCells(board, first, second, level.boardSize);
     renderBoard();
     setMessage('Invalid move. Try another swap.');
     isResolving = false;

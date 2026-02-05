@@ -248,6 +248,29 @@ p {
   animation: crushPop 0.22s ease forwards;
 }
 
+.candy.special-bomb::after {
+  content: "✹";
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  font-size: 0.75rem;
+  color: rgb(255 245 148 / 95%);
+  text-shadow: 0 0 5px rgb(0 0 0 / 45%);
+}
+
+.candy.special-laser::after {
+  content: "";
+  position: absolute;
+  inset: 42% 12%;
+  background: rgb(255 255 255 / 82%);
+  border-radius: 999px;
+  box-shadow: 0 0 8px rgb(255 255 255 / 95%);
+}
+
+.candy.special-laser-v::after {
+  inset: 12% 42%;
+}
+
 .candy.bomb-blast {
   animation: bombBlast 0.36s ease-out forwards;
   z-index: 2;
@@ -260,6 +283,10 @@ p {
   border-radius: 50%;
   border: 3px solid rgb(255 255 255 / 80%);
   animation: shockwave 0.36s ease-out forwards;
+}
+
+.candy.laser-blast {
+  animation: laserShot 0.34s ease-out forwards;
 }
 
 .candy-round {
@@ -389,6 +416,23 @@ p {
   100% {
     transform: scale(1.2);
     opacity: 0;
+  }
+}
+
+@keyframes laserShot {
+  0% {
+    transform: scale(1);
+    filter: brightness(1.2);
+  }
+  50% {
+    transform: scale(1.08);
+    filter: brightness(2.1);
+    box-shadow: 0 0 16px rgb(146 242 255 / 95%);
+  }
+  100% {
+    transform: scale(0.5);
+    opacity: 0;
+    filter: brightness(2.4);
   }
 }
 
