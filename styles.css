@@ -5,8 +5,9 @@
   --text: #f8f5ff;
   --muted: #bbaee0;
   --accent: #ffcb52;
-  --tile-size: clamp(38px, 6.5vw, 58px);
+  --tile-size: clamp(34px, 6vw, 56px);
   --gap: 6px;
+  --board-size: 8;
 }
 
 * {
@@ -24,10 +25,17 @@ body {
   padding: 24px;
 }
 
-.game-shell {
-  width: min(900px, 100%);
+.app-shell {
+  width: min(920px, 100%);
+}
+
+.screen {
   display: grid;
   gap: 14px;
+}
+
+.hidden {
+  display: none;
 }
 
 .panel {
@@ -38,26 +46,116 @@ body {
   box-shadow: 0 10px 20px rgb(0 0 0 / 20%);
 }
 
-header.panel {
+.screen-main {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.screen-main h1 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  margin: 0;
+}
+
+.screen-main p {
+  color: var(--muted);
+  margin: 10px auto 0;
+  max-width: 550px;
+}
+
+.menu-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.screen-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.settings-list {
+  display: grid;
+  gap: 12px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgb(255 255 255 / 5%);
+  border-radius: 10px;
+}
+
+.setting-item select {
+  border-radius: 8px;
+  border: 1px solid #5d4c97;
+  background: #261c47;
+  color: var(--text);
+  padding: 8px 10px;
+}
+
+.setting-item.checkbox {
+  justify-content: flex-start;
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 10px;
+}
+
+.level-node {
+  border: none;
+  border-radius: 14px;
+  min-height: 68px;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #2a1200;
+  background: linear-gradient(180deg, #ffe18a, #ffbf40);
+  cursor: pointer;
+}
+
+.level-node.current {
+  outline: 3px solid #9de6ff;
+}
+
+.level-node.locked {
+  background: linear-gradient(180deg, #6f628f, #4e4468);
+  color: #ddd6ef;
+  cursor: not-allowed;
+}
+
+.game-shell {
+  width: min(920px, 100%);
+  display: grid;
+  gap: 14px;
+}
+
+.game-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
 }
 
-h1,
-h2,
-p {
-  margin: 0;
-}
-
-h1 {
-  font-size: clamp(1.2rem, 3vw, 1.8rem);
-}
-
-p {
-  color: var(--muted);
-  margin-top: 4px;
+.top-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .hud {
@@ -93,8 +191,8 @@ p {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(8, var(--tile-size));
-  grid-template-rows: repeat(8, var(--tile-size));
+  grid-template-columns: repeat(var(--board-size), var(--tile-size));
+  grid-template-rows: repeat(var(--board-size), var(--tile-size));
   gap: var(--gap);
   padding: 12px;
   border-radius: 14px;
@@ -253,6 +351,7 @@ p {
   min-height: 1.4rem;
   font-weight: 700;
   color: var(--accent);
+  text-align: center;
 }
 
 .rules ul {
@@ -271,11 +370,15 @@ p {
   cursor: pointer;
 }
 
+.btn-primary {
+  background: linear-gradient(180deg, #8bffe5, #44eac0);
+}
+
 .btn:hover {
   filter: brightness(1.06);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   body {
     padding: 10px;
   }
@@ -284,8 +387,19 @@ p {
     padding: 12px;
   }
 
-  header.panel {
+  .game-top,
+  .screen-head {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .menu-actions,
+  .top-actions {
+    width: 100%;
+  }
+
+  .menu-actions .btn,
+  .top-actions .btn {
+    flex: 1;
   }
 }

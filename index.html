@@ -7,43 +7,91 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="game-shell">
-      <header class="panel">
-        <div>
-          <h1>Match Color Crush</h1>
-          <p>Swap adjacent candies to make matches of 3+ like Candy Crush.</p>
-        </div>
-        <button id="resetBtn" class="btn">New Game</button>
-      </header>
-
-      <section class="hud panel">
-        <div class="hud-item">
-          <span class="label">Score</span>
-          <strong id="score">0</strong>
-        </div>
-        <div class="hud-item">
-          <span class="label">Moves Left</span>
-          <strong id="moves">30</strong>
-        </div>
-        <div class="hud-item">
-          <span class="label">Best</span>
-          <strong id="best">0</strong>
+    <main class="app-shell">
+      <section id="mainScreen" class="screen screen-main panel">
+        <h1>Match Color Crush</h1>
+        <p>Crush sweet candies, beat level goals, and unlock harder stages.</p>
+        <div class="menu-actions">
+          <button id="playBtn" class="btn btn-primary">Play</button>
+          <button id="openSettingsBtn" class="btn">Settings</button>
         </div>
       </section>
 
-      <section class="board-wrap panel">
-        <div id="board" class="board" aria-label="match color board"></div>
-        <div id="message" class="message" aria-live="polite"></div>
+      <section id="settingsScreen" class="screen panel hidden">
+        <header class="screen-head">
+          <h2>Settings</h2>
+          <button id="closeSettingsBtn" class="btn">Back</button>
+        </header>
+
+        <div class="settings-list">
+          <label class="setting-item">
+            <span>Animation Speed</span>
+            <select id="animationSpeed">
+              <option value="fast">Fast</option>
+              <option value="normal" selected>Normal</option>
+              <option value="slow">Slow</option>
+            </select>
+          </label>
+
+          <label class="setting-item checkbox">
+            <input id="hintsToggle" type="checkbox" checked />
+            <span>Show level tips</span>
+          </label>
+        </div>
       </section>
 
-      <footer class="panel rules">
-        <h2>How to play</h2>
-        <ul>
-          <li>Click one candy, then a neighboring candy to swap.</li>
-          <li>Match 3 or more of the same color in a line.</li>
-          <li>Chain reactions give bonus points.</li>
-        </ul>
-      </footer>
+      <section id="mapScreen" class="screen panel hidden">
+        <header class="screen-head">
+          <h2>Level Map</h2>
+          <button id="mapBackBtn" class="btn">Main Menu</button>
+        </header>
+        <p class="muted">Each level gets harder with fewer moves, bigger board and higher score target.</p>
+        <div id="levelGrid" class="level-grid" aria-label="level map"></div>
+      </section>
+
+      <section id="gameScreen" class="screen hidden">
+        <section class="game-shell">
+          <header class="panel game-top">
+            <div>
+              <h2 id="levelTitle">Level 1</h2>
+              <p id="levelGoal">Target score: 400</p>
+            </div>
+            <div class="top-actions">
+              <button id="backToMapBtn" class="btn">Map</button>
+              <button id="resetBtn" class="btn">Restart</button>
+            </div>
+          </header>
+
+          <section class="hud panel">
+            <div class="hud-item">
+              <span class="label">Score</span>
+              <strong id="score">0</strong>
+            </div>
+            <div class="hud-item">
+              <span class="label">Moves Left</span>
+              <strong id="moves">30</strong>
+            </div>
+            <div class="hud-item">
+              <span class="label">Best</span>
+              <strong id="best">0</strong>
+            </div>
+          </section>
+
+          <section class="board-wrap panel">
+            <div id="board" class="board" aria-label="match color board"></div>
+            <div id="message" class="message" aria-live="polite"></div>
+          </section>
+
+          <footer class="panel rules">
+            <h3>How to play</h3>
+            <ul>
+              <li>Swap neighboring candies to match 3 or more in a line.</li>
+              <li>Beat the target score before moves run out.</li>
+              <li>Higher levels are tougher but worth more points.</li>
+            </ul>
+          </footer>
+        </section>
+      </section>
     </main>
 
     <script src="gameLogic.js"></script>
