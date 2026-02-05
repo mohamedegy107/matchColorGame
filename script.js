@@ -96,7 +96,9 @@ function renderBoard() {
       candy.className = 'candy';
       candy.dataset.index = String(idx);
       candy.ariaLabel = `Candy row ${row + 1} column ${col + 1}`;
-      candy.style.background = `radial-gradient(circle at 30% 30%, #ffffffa0, ${CANDY_TYPES[board[row][col]].color})`;
+      const candyId = board[row][col];
+      const candyColor = candyId === null ? '#1f1f2e' : CANDY_TYPES[candyId].color;
+      candy.style.background = `radial-gradient(circle at 30% 30%, #ffffffa0, ${candyColor})`;
 
       if (selected === idx) candy.classList.add('selected');
 
